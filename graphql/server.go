@@ -13,15 +13,33 @@ type Product struct {
 	Description string  `json:"lastName"`
 	Quantity    int     `json:"quantity"`
 	Weight      float32 `json:"weight"`
+	Price       float32 `json:"price"`
 }
 
 var products = []Product{
 	{
 		Id:          1,
-		Name:        "Test",
+		Name:        "Test1",
+		Description: "Un truc super lourd",
+		Quantity:    100,
+		Weight:      10.0,
+		Price:       20.0,
+	},
+	{
+		Id:          2,
+		Name:        "Test2",
+		Description: "Un truc super lourd",
+		Quantity:    200,
+		Weight:      40.0,
+		Price:       10.0,
+	},
+	{
+		Id:          3,
+		Name:        "Test3",
 		Description: "Un truc super lourd",
 		Quantity:    500,
-		Weight:      1000000,
+		Weight:      80.0,
+		Price:       38.0,
 	},
 }
 
@@ -96,8 +114,23 @@ var Schema, _ = graphql.NewSchema(graphql.SchemaConfig{
 	Query: queryType,
 })
 
-func main() {
+func disableCors(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type, Content-Length, Accept-Encoding")
 
+		if r.Method == "OPTIONS" {
+			w.Header().Set("Access-Control-Max-Age", "86400")
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		h.ServeHTTP(w, r)
+	})
+}
+
+func main() {
 	// create a graphl-go HTTP handler with our previously defined schema
 	h := handler.New(&handler.Config{
 		Schema: &Schema,
@@ -108,9 +141,9 @@ func main() {
 	fs := http.FileServer(http.Dir("static"))
 
 	// serve a GraphQL endpoint at `/graphql`
-	http.Handle("/graphql", h)
+	http.Handle("/graphql", disableCors(h))
 	// serve a GraphiQL endpoint at `/`
 	http.Handle("/", fs)
 
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8081", nil)
 }
