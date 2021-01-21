@@ -6,8 +6,8 @@ import javax.jws.WebService;
 @WebService()
 public class DeliveryFee {
     @WebMethod
-    public double CalculateDelivery(double distance) {
-        double result = distance * 0.2;
+    public double CalculateDelivery(double weight) {
+        double result = weight * 0.2;
         System.out.println("Delivery fee: " + result);
         return result;
     }
