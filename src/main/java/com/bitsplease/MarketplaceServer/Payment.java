@@ -1,5 +1,6 @@
 package com.bitsplease.MarketplaceServer;
 
+import com.bitsplease.MarketplaceServer.model.Client;
 import com.bitsplease.MarketplaceServer.model.Product;
 import org.json.JSONObject;
 
@@ -16,6 +17,7 @@ public class Payment {
     private static final String API_KEY = "fVOz2GjFiOSQdcUocALLaN2AhnOQgQtPv0NDuPQYoDzXKFCpQz";
     private static final String CLIENT_ID = "info802marketplace";
     private static final String AUTHORIZATION_HEADER = "Basic " + Base64.getEncoder().encodeToString((CLIENT_ID + ":" + API_KEY).getBytes());
+    private static final String MANGOPAY_URL = "https://api.sandbox.mangopay.com/v2.01/info802marketplace";
 
     @Path("/pay")
     @POST
@@ -25,9 +27,6 @@ public class Payment {
             Product product
     ) {
         try {
-            final String httpsURL = "https://api.sandbox.mangopay.com/v2.01/info802marketplace";
-            this.FixHttpsCert();
-
             int userId = (int)(Math.random()*10000)+1;
             String webCardRequestJson = new JSONObject()
                     .put("AuthorId", 100218276)
@@ -39,7 +38,7 @@ public class Payment {
                     .put("Culture", "FR")
                     .toString();
 
-            URL webCardUrl = new URL(httpsURL+"/payins/card/web");
+            URL webCardUrl = new URL(MANGOPAY_URL+"/payins/card/web");
             HttpsURLConnection con = (HttpsURLConnection)webCardUrl.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Authorization", AUTHORIZATION_HEADER);
@@ -67,38 +66,5 @@ public class Payment {
             e.printStackTrace();
             return e.toString();
         }
-    }
-
-    /**
-     * Used to get rid of: "javax.net.ssl.SSLHandshakeException: PKIX path building failed:
-     * sun.security.provider.certpath.SunCertPathBuilderException:
-     * unable to find valid certification path to requested target" with mangopay sandbox api
-     *
-     * It override the SSL checking process
-     * @throws Exception
-     */
-    public void FixHttpsCert() throws Exception {
-        TrustManager[] trustAllCerts = new TrustManager[] {
-                new X509TrustManager() {
-                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                        return null;
-                    }
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {  }
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {  }
-                }
-        };
-
-        SSLContext sc = SSLContext.getInstance("SSL");
-        sc.init(null, trustAllCerts, new java.security.SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-        // Create all-trusting host name verifier
-        HostnameVerifier allHostsValid = new HostnameVerifier() {
-            public boolean verify(String hostname, SSLSession session) {
-                return true;
-            }
-        };
-        // Install the all-trusting host verifier
-        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
     }
 }
