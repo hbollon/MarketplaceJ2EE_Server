@@ -30,6 +30,13 @@ public class Payment {
     ) {
         try {
             int userId = getClientId(obj.getClient().getEmail());
+            if(userId == -1){
+               userId = registerNewClient(obj.getClient());
+               if(userId == -1)
+                   return "Error during user registration on MangoPay.";
+               System.out.println("User successfully registered.");
+            }
+
             String webCardRequestJson = new JSONObject()
                     .put("AuthorId", userId)
                     .put("DebitedFunds", new JSONObject().put("Currency", "EUR").put("Amount", (obj.getProduct().getPrice() + (obj.getProduct().getWeight() * 0.3)) * 100))
@@ -107,4 +114,47 @@ public class Payment {
         return -1;
     }
 
+    public int registerNewClient(Client client) {
+        try {
+            String clientRegisterRequestJson = new JSONObject()
+                    .put("FirstName", client.getFirstName())
+                    .put("LastName", client.getLastName())
+                    .put("Birthday", 1463496101)
+                    .put("Nationality", "FR")
+                    .put("CountryOfResidence", "FR")
+                    .put("Email", client.getEmail())
+                    .toString();
+
+            System.out.println(clientRegisterRequestJson);
+
+            URL registerClientUrl = new URL(MANGOPAY_URL + "/users/natural");
+            HttpsURLConnection con = (HttpsURLConnection)registerClientUrl.openConnection();
+            con.setRequestMethod("POST");
+            con.setRequestProperty("Authorization", AUTHORIZATION_HEADER);
+            con.setRequestProperty("Content-Length", String.valueOf(clientRegisterRequestJson.length()));
+            con.setRequestProperty("Content-Type","application/json");
+            con.setRequestProperty("User-Agent", "Mozilla/5.0");
+            con.setDoOutput(true);
+            con.setDoInput(true);
+
+            DataOutputStream output = new DataOutputStream(con.getOutputStream());
+            output.writeBytes(clientRegisterRequestJson);
+            output.close();
+
+            DataInputStream input = new DataInputStream(con.getInputStream());
+            String response = "";
+            for( int c = input.read(); c != -1; c = input.read() )
+                response = response.concat(String.valueOf((char)c));
+            input.close();
+
+            if(con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                JSONObject obj = new JSONObject(response);
+                return obj.getInt("Id");
+            }
+            return -1;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
 }
