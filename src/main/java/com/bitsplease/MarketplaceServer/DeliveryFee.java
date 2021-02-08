@@ -7,8 +7,12 @@ import javax.jws.WebService;
 public class DeliveryFee {
     @WebMethod
     public double CalculateDelivery(double weight) {
-        double result = weight * 0.2;
+        double result = DeliveryFeeProcess(weight);
         System.out.println("Delivery fee: " + result);
         return result;
+    }
+
+    public static double DeliveryFeeProcess(double weight) {
+        return weight * 0.2;
     }
 }
