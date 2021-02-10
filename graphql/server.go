@@ -61,6 +61,9 @@ var productType = graphql.NewObject(graphql.ObjectConfig{
 		"weight": &graphql.Field{
 			Type: graphql.Float,
 		},
+		"price": &graphql.Field{
+			Type: graphql.Float,
+		},
 	},
 })
 
@@ -142,6 +145,7 @@ func main() {
 
 	// serve a GraphQL endpoint at `/graphql`
 	http.Handle("/graphql", disableCors(h))
+
 	// serve a GraphiQL endpoint at `/`
 	http.Handle("/", fs)
 
