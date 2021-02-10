@@ -58,4 +58,16 @@ public class Client {
     public void setEmail(String email) {
         this.email = email;
     }
+
+    @Override
+    public String toString() {
+        return "Client{" +
+                "firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", birthday='" + birthday + '\'' +
+                ", nationality='" + nationality + '\'' +
+                ", countryOfResidence='" + countryOfResidence + '\'' +
+                ", email='" + email + '\'' +
+                '}';
+    }
 }

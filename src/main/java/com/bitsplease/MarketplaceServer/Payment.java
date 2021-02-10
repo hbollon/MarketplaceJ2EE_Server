@@ -28,6 +28,7 @@ public class Payment {
     public String pay(
             BuyRequest obj
     ) {
+        System.out.println(obj.toString());
         try {
             int userId = getClientId(obj.getClient().getEmail());
             if(userId == -1){
@@ -39,8 +40,8 @@ public class Payment {
 
             String webCardRequestJson = new JSONObject()
                     .put("AuthorId", userId)
-                    .put("DebitedFunds", new JSONObject().put("Currency", "EUR").put("Amount", (obj.getProduct().getPrice() + (obj.getProduct().getWeight() * 0.3)) * 100))
-                    .put("Fees", new JSONObject().put("Currency", "EUR").put("Amount", DeliveryFee.DeliveryFeeProcess(obj.getProduct().getWeight())))
+                    .put("DebitedFunds", new JSONObject().put("Currency", "EUR").put("Amount", (obj.getProduct().getPrice() + obj.getProduct().getFees()) * 100.0))
+                    .put("Fees", new JSONObject().put("Currency", "EUR").put("Amount", 0.0))
                     .put("ReturnURL", "http://localhost:4200")
                     .put("CardType", "CB_VISA_MASTERCARD")
                     .put("CreditedWalletId", "100218510")

@@ -6,6 +6,7 @@ public class Product {
     private int quantity;
     private float weight;
     private float price;
+    private float fees;
 
     public Product() {
     }
@@ -48,5 +49,25 @@ public class Product {
 
     public void setPrice(float price) {
         this.price = price;
+    }
+
+    public float getFees() {
+        return fees;
+    }
+
+    public void setFees(float fees) {
+        this.fees = fees;
+    }
+
+    @Override
+    public String toString() {
+        return "Product{" +
+                "name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", quantity=" + quantity +
+                ", weight=" + weight +
+                ", price=" + price +
+                ", fees=" + fees +
+                '}';
     }
 }

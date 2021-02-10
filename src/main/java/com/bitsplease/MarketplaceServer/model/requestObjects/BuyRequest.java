@@ -25,4 +25,12 @@ public class BuyRequest {
     public void setProduct(Product product) {
         this.product = product;
     }
+
+    @Override
+    public String toString() {
+        return "BuyRequest{" +
+                "client=" + client.toString() +
+                ", product=" + product.toString() +
+                '}';
+    }
 }
