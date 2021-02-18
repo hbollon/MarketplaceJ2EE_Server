@@ -71,7 +71,7 @@
                 <artifactId>heroku-maven-plugin</artifactId>
                 <version>3.0.4</version>
                 <configuration>
-                    <appName>Marketplace_Server_J2EE</appName>
+                    <appName>${heroku.appName}</appName>
                 </configuration>
                 </plugin>
         </plugins>
