@@ -71,28 +71,28 @@ func connectDatabase() *sql.DB {
 func initDb(db *sql.DB) error {
 	var products = []Product{
 		{
-			Id:          1,
-			Name:        "Test1",
-			Description: "Un truc super lourd",
+			Name:        "Cyberpunk 2077",
+			Description: "Cyberpunk 2077 est un jeu vidéo d''action-RPG en vue à la première personne développé par CD Projekt RED, fondé sur la série de jeu de rôle sur table Cyberpunk 2020 conçue par Mike Pondsmith.",
 			Quantity:    100,
 			Weight:      10.0,
-			Price:       20.0,
+			Price:       50.0,
+			AssetUrl:    "https://images-na.ssl-images-amazon.com/images/I/81%2BpdXH3fjL._AC_SY500_.jpg",
 		},
 		{
-			Id:          2,
-			Name:        "Test2",
-			Description: "Un truc super lourd",
-			Quantity:    200,
-			Weight:      40.0,
-			Price:       10.0,
+			Name:        "Assassin''s Creed Valhalla",
+			Description: "Assassin''s Creed Valhalla est un jeu vidéo d''action-aventure et de rôle, développé par Ubisoft Montréal et édité par Ubisoft, sorti en novembre 2020 sur Microsoft Windows.",
+			Quantity:    100,
+			Weight:      8.0,
+			Price:       59.99,
+			AssetUrl:    "https://image.jeuxvideo.com/medias/158826/1588264397-5261-jaquette-avant.jpg",
 		},
 		{
-			Id:          3,
-			Name:        "Test3",
-			Description: "Un truc super lourd",
-			Quantity:    500,
-			Weight:      80.0,
-			Price:       38.0,
+			Name:        "Red Dead Redemption II",
+			Description: "Red Dead Redemption II est un jeu vidéo d''action-aventure et de western multiplateforme, développé par Rockstar Studios et édité par Rockstar Games, sorti le 26 octobre 2018 sur PlayStation 4 et Xbox One et le 5 novembre 2019 sur Windows.",
+			Quantity:    100,
+			Weight:      10.0,
+			Price:       50.0,
+			AssetUrl:    "https://lh3.googleusercontent.com/HCUkD69MAHEOj84Yi7Kb5vxHpCePTsmQI4g9vYuVPUo-87cWE6ZZIk0tiyYzaiS9zaAFMTXRNYJaaRczRN-yQYw",
 		},
 	}
 
@@ -103,7 +103,8 @@ func initDb(db *sql.DB) error {
 			"description text NOT NULL," +
 			"quantity integer NOT NULL," +
 			"weight real NOT NULL," +
-			"price real NOT NULL)",
+			"price real NOT NULL," +
+			"asset_url text)",
 	)
 	if err != nil {
 		return err
@@ -111,12 +112,13 @@ func initDb(db *sql.DB) error {
 
 	for _, p := range products {
 		_, err = db.Query(
-			"INSERT INTO products (name, description, quantity, weight, price) VALUES ('" +
+			"INSERT INTO products (name, description, quantity, weight, price, asset_url) VALUES ('" +
 				p.Name + "', '" +
 				p.Description + "', " +
 				fmt.Sprintf("%d", p.Quantity) + ", " +
 				fmt.Sprintf("%f", p.Weight) + ", " +
-				fmt.Sprintf("%f", p.Price) + ") " +
+				fmt.Sprintf("%f", p.Price) + ", '" +
+				p.AssetUrl + "') " +
 				"ON CONFLICT DO NOTHING",
 		)
 		if err != nil {

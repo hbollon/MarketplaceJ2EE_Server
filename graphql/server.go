@@ -15,6 +15,7 @@ type Product struct {
 	Quantity    int     `json:"quantity"`
 	Weight      float32 `json:"weight"`
 	Price       float32 `json:"price"`
+	AssetUrl    string  `json:"asset_url"`
 }
 
 var products []Product
@@ -39,6 +40,9 @@ var productType = graphql.NewObject(graphql.ObjectConfig{
 		},
 		"price": &graphql.Field{
 			Type: graphql.Float,
+		},
+		"asset_url": &graphql.Field{
+			Type: graphql.String,
 		},
 	},
 })
@@ -114,7 +118,7 @@ func main() {
 	// fetch all products from db
 	db := connectDatabase()
 	defer db.Close()
-	rows, err := db.Query("SELECT name, description, quantity, weight, price FROM products")
+	rows, err := db.Query("SELECT name, description, quantity, weight, price, asset_url FROM products")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -128,6 +132,7 @@ func main() {
 			&p.Quantity,
 			&p.Weight,
 			&p.Price,
+			&p.AssetUrl,
 		)
 		if err != nil {
 			log.Fatalf("Scan: %v", err)
