@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/graphql-go/graphql"
@@ -16,32 +17,7 @@ type Product struct {
 	Price       float32 `json:"price"`
 }
 
-var products = []Product{
-	{
-		Id:          1,
-		Name:        "Test1",
-		Description: "Un truc super lourd",
-		Quantity:    100,
-		Weight:      10.0,
-		Price:       20.0,
-	},
-	{
-		Id:          2,
-		Name:        "Test2",
-		Description: "Un truc super lourd",
-		Quantity:    200,
-		Weight:      40.0,
-		Price:       10.0,
-	},
-	{
-		Id:          3,
-		Name:        "Test3",
-		Description: "Un truc super lourd",
-		Quantity:    500,
-		Weight:      80.0,
-		Price:       38.0,
-	},
-}
+var products []Product
 
 var productType = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Product",
@@ -117,6 +93,7 @@ var Schema, _ = graphql.NewSchema(graphql.SchemaConfig{
 	Query: queryType,
 })
 
+// Disable CORS policy from endpoint
 func disableCors(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -134,6 +111,30 @@ func disableCors(h http.Handler) http.Handler {
 }
 
 func main() {
+	// fetch all products from db
+	db := connectDatabase()
+	defer db.Close()
+	rows, err := db.Query("SELECT name, description, quantity, weight, price FROM products")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// unmarshall result rows to Product
+	for rows.Next() {
+		var p Product
+		err = rows.Scan(
+			&p.Name,
+			&p.Description,
+			&p.Quantity,
+			&p.Weight,
+			&p.Price,
+		)
+		if err != nil {
+			log.Fatalf("Scan: %v", err)
+		}
+		products = append(products, p)
+	}
+
 	// create a graphl-go HTTP handler with our previously defined schema
 	h := handler.New(&handler.Config{
 		Schema: &Schema,
