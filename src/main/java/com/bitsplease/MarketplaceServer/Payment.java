@@ -1,7 +1,6 @@
 package com.bitsplease.MarketplaceServer;
 
 import com.bitsplease.MarketplaceServer.model.Client;
-import com.bitsplease.MarketplaceServer.model.Product;
 import com.bitsplease.MarketplaceServer.model.requestObjects.BuyRequest;
 import org.json.JSONArray;
 import org.json.JSONException;

@@ -66,6 +66,14 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.3.0</version>
             </plugin>
+            <plugin>
+                <groupId>com.heroku.sdk</groupId>
+                <artifactId>heroku-maven-plugin</artifactId>
+                <version>3.0.4</version>
+                <configuration>
+                    <appName>Marketplace_Server_J2EE</appName>
+                </configuration>
+                </plugin>
         </plugins>
     </build>
 </project>
