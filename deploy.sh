@@ -7,6 +7,7 @@ git reset --hard
 git pull
 mvn clean install
 ~/Softwares/glassfish/glassfish5/glassfish/bin/asadmin start-domain domain2
+~/Softwares/glassfish/glassfish5/glassfish/bin/asadmin undeploy MarketplaceServer-1.0-SNAPSHOT
 ~/Softwares/glassfish/glassfish5/glassfish/bin/asadmin --port 4848 --host localhost deploy target/MarketplaceServer-1.0-SNAPSHOT.war
 echo "J2EE server launched !"
 
