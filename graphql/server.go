@@ -8,6 +8,11 @@ import (
 	handler "github.com/graphql-go/graphql-go-handler"
 )
 
+var (
+	SslCrtFile string
+	SslKeyFile string
+)
+
 type Product struct {
 	Id          int     `json:"id"`
 	Name        string  `json:"firstName"`
@@ -155,5 +160,6 @@ func main() {
 	// serve a GraphiQL endpoint at `/`
 	http.Handle("/", fs)
 
-	http.ListenAndServe(":8081", nil)
+	//http.ListenAndServe(":8081", nil)
+	log.Fatal(http.ListenAndServeTLS(":8081", SslCrtFile, SslKeyFile, nil)) // https endpoint
 }

@@ -37,6 +37,8 @@ func init() {
 	dbname = os.Getenv("DB_DATABASE")
 	user = os.Getenv("DB_USERNAME")
 	password = os.Getenv("DB_PASSWORD")
+	SslCrtFile = os.Getenv("SSL_CRT_FILE")
+	SslKeyFile = os.Getenv("SSL_KEY_FILE")
 }
 
 func connectDatabase() *sql.DB {
