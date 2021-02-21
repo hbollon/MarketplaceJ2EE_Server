@@ -160,6 +160,6 @@ func main() {
 	// serve a GraphiQL endpoint at `/`
 	http.Handle("/", fs)
 
-	//http.ListenAndServe(":8081", nil)
+	//http.ListenAndServe(":8081", nil) // http endpoint
 	log.Fatal(http.ListenAndServeTLS(":8081", SslCrtFile, SslKeyFile, nil)) // https endpoint
 }
