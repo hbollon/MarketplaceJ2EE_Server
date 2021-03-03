@@ -11,3 +11,7 @@ buildNumber.properties
 
 .idea/
 outputs/
+
+# Certificate files
+*.crt
+*.key
