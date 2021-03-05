@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/graphql-go/graphql"
@@ -184,6 +185,9 @@ func main() {
 	// serve a GraphiQL endpoint at `/`
 	http.Handle("/", fs)
 
-	//http.ListenAndServe(":8081", nil) // http endpoint
-	log.Fatal(http.ListenAndServeTLS(":8081", SslCrtFile, SslKeyFile, nil)) // https endpoint
+	if environment == "prod" {
+		log.Fatal(http.ListenAndServeTLS(":8081", SslCrtFile, SslKeyFile, nil)) // https endpoint
+	} else {
+		log.Fatal(http.ListenAndServe(":8081", nil)) // http endpoint
+	}
 }

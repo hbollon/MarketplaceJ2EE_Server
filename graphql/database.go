@@ -12,12 +12,13 @@ import (
 )
 
 var (
-	connection string
-	host       string
-	port       int
-	dbname     string
-	user       string
-	password   string
+	environment string
+	connection  string
+	host        string
+	port        int
+	dbname      string
+	user        string
+	password    string
 )
 
 // init function called by Go before main execution and after variables definition
@@ -27,6 +28,7 @@ func init() {
 		log.Fatal("Error loading .env file")
 	}
 
+	environment = os.Getenv("ENVIRONMENT")
 	connection = os.Getenv("DB_CONNECTION")
 	host = os.Getenv("DB_HOST")
 	port, err = strconv.Atoi(os.Getenv("DB_PORT"))
