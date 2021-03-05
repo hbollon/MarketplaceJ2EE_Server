@@ -223,3 +223,26 @@ func getProductByName(db *sql.DB, name string) (Product, error) {
 
 	return p, nil
 }
+
+func insertProduct(db *sql.DB, p Product) (bool, error) {
+	res, err := getProductByName(db, p.Name)
+	if res == (Product{}) && err == nil {
+		_, err = db.Query(
+			"INSERT INTO products (name, description, quantity, weight, price, asset_url) VALUES ('" +
+				p.Name + "', '" +
+				p.Description + "', " +
+				fmt.Sprintf("%d", p.Quantity) + ", " +
+				fmt.Sprintf("%f", p.Weight) + ", " +
+				fmt.Sprintf("%f", p.Price) + ", '" +
+				p.AssetUrl + "') " +
+				"ON CONFLICT DO NOTHING",
+		)
+	} else {
+		err = fmt.Errorf("The product '%s' is already registered.", p.Name)
+	}
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}

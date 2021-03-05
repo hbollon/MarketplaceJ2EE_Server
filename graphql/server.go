@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/graphql-go/graphql"
@@ -19,12 +20,10 @@ type Product struct {
 	Name        string  `json:"firstName"`
 	Description string  `json:"lastName"`
 	Quantity    int     `json:"quantity"`
-	Weight      float32 `json:"weight"`
-	Price       float32 `json:"price"`
+	Weight      float64 `json:"weight"`
+	Price       float64 `json:"price"`
 	AssetUrl    string  `json:"asset_url"`
 }
-
-var products []Product
 
 var productType = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Product",
@@ -89,6 +88,56 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 			Type: graphql.NewList(productType),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				return getAllProducts(db)
+			},
+		},
+		"sellProduct": &graphql.Field{
+			Type:        graphql.Boolean,
+			Description: "Add a new product to the marketplace catalog",
+			Args: graphql.FieldConfigArgument{
+				"name": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+				"description": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+				"quantity": &graphql.ArgumentConfig{
+					Type:         graphql.Int,
+					DefaultValue: 1,
+				},
+				"weight": &graphql.ArgumentConfig{
+					Type: graphql.Float,
+				},
+				"price": &graphql.ArgumentConfig{
+					Type: graphql.Float,
+				},
+				"asset_url": &graphql.ArgumentConfig{
+					Type:         graphql.String,
+					DefaultValue: "https://bubbleerp.sysfosolutions.com/img/default-pro.jpg",
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				var product Product
+				var ok bool
+				product.Name, ok = p.Args["name"].(string)
+				if !ok {
+					return nil, errors.New("Missing required argument: name")
+				}
+				product.Description, ok = p.Args["description"].(string)
+				if !ok {
+					return nil, errors.New("Missing required argument: description")
+				}
+				product.Quantity, _ = p.Args["quantity"].(int) // optional with default value
+				product.Weight, ok = p.Args["weight"].(float64)
+				if !ok {
+					return nil, errors.New("Missing required argument: weight")
+				}
+				product.Price, ok = p.Args["price"].(float64)
+				if !ok {
+					return nil, errors.New("Missing required argument: price")
+				}
+				product.AssetUrl, _ = p.Args["asset_url"].(string) // optional with default value
+
+				return insertProduct(db, product)
 			},
 		},
 	},
