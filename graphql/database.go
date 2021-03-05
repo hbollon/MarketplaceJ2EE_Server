@@ -130,3 +130,96 @@ func initDb(db *sql.DB) error {
 
 	return nil
 }
+
+func getAllProducts(db *sql.DB) ([]Product, error) {
+	var products []Product
+	rows, err := db.Query("SELECT name, description, quantity, weight, price, asset_url FROM products")
+	if err != nil {
+		return nil, err
+	}
+
+	// unmarshall result rows to Product
+	for rows.Next() {
+		var p Product
+		err = rows.Scan(
+			&p.Name,
+			&p.Description,
+			&p.Quantity,
+			&p.Weight,
+			&p.Price,
+			&p.AssetUrl,
+		)
+		if err != nil {
+			log.Fatalf("Scan: %v", err)
+		}
+		products = append(products, p)
+	}
+
+	return products, nil
+}
+
+func getProductById(db *sql.DB, id int) (Product, error) {
+	var p Product
+	// Prepare query, takes a name argument
+	query, err := db.Prepare("SELECT name, description, quantity, weight, price, asset_url FROM products WHERE id=$1")
+	if err != nil {
+		return p, err
+	}
+
+	// Make query with our stmt, passing in name argument
+	var rows *sql.Rows
+	rows, err = query.Query(id)
+	if err != nil {
+		return p, err
+	}
+
+	// Unmarshall result rows to Product
+	if rows.Next() {
+		err = rows.Scan(
+			&p.Name,
+			&p.Description,
+			&p.Quantity,
+			&p.Weight,
+			&p.Price,
+			&p.AssetUrl,
+		)
+	}
+	if err != nil {
+		return p, fmt.Errorf("Scan: %v", err)
+	}
+
+	return p, nil
+}
+
+func getProductByName(db *sql.DB, name string) (Product, error) {
+	var p Product
+	// Prepare query, takes a name argument
+	query, err := db.Prepare("SELECT name, description, quantity, weight, price, asset_url FROM products WHERE name=$1")
+	if err != nil {
+		return p, err
+	}
+
+	// Make query with our stmt, passing in name argument
+	var rows *sql.Rows
+	rows, err = query.Query(name)
+	if err != nil {
+		return p, err
+	}
+
+	// Unmarshall result rows to Product
+	if rows.Next() {
+		err = rows.Scan(
+			&p.Name,
+			&p.Description,
+			&p.Quantity,
+			&p.Weight,
+			&p.Price,
+			&p.AssetUrl,
+		)
+	}
+	if err != nil {
+		return p, fmt.Errorf("Scan: %v", err)
+	}
+
+	return p, nil
+}

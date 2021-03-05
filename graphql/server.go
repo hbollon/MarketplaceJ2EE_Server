@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"database/sql"
 	"net/http"
 
 	"github.com/graphql-go/graphql"
@@ -11,6 +11,7 @@ import (
 var (
 	SslCrtFile string
 	SslKeyFile string
+	db         *sql.DB
 )
 
 type Product struct {
@@ -68,23 +69,18 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 				"id": &graphql.ArgumentConfig{
 					Type: graphql.Int,
 				},
+				"name": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				id, ok := p.Args["id"].(int)
 				if ok {
-					for _, product := range products {
-						if int(product.Id) == id {
-							return product, nil
-						}
-					}
+					return getProductById(db, id)
 				}
 				name, ok := p.Args["name"].(string)
 				if ok {
-					for _, product := range products {
-						if string(product.Name) == name {
-							return product, nil
-						}
-					}
+					return getProductByName(db, name)
 				}
 				return nil, nil
 			},
@@ -92,7 +88,7 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 		"products": &graphql.Field{
 			Type: graphql.NewList(productType),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				return products, nil
+				return getAllProducts(db)
 			},
 		},
 	},
@@ -121,29 +117,8 @@ func disableCors(h http.Handler) http.Handler {
 
 func main() {
 	// fetch all products from db
-	db := connectDatabase()
+	db = connectDatabase()
 	defer db.Close()
-	rows, err := db.Query("SELECT name, description, quantity, weight, price, asset_url FROM products")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// unmarshall result rows to Product
-	for rows.Next() {
-		var p Product
-		err = rows.Scan(
-			&p.Name,
-			&p.Description,
-			&p.Quantity,
-			&p.Weight,
-			&p.Price,
-			&p.AssetUrl,
-		)
-		if err != nil {
-			log.Fatalf("Scan: %v", err)
-		}
-		products = append(products, p)
-	}
 
 	// create a graphl-go HTTP handler with our previously defined schema
 	h := handler.New(&handler.Config{
