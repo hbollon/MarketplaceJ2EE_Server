@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Check if the deploy script is already running
+for pid in $(pidof -x deploy.sh); do
+    echo $pid
+    if [ $pid != $$ ]; then
+        echo "Deploy script already running!"
+        exit 2
+    fi
+done
+
 # Stop Glassfish server
 ~/Softwares/glassfish/glassfish5/glassfish/bin/asadmin stop-domain domain2
 
