@@ -14,7 +14,7 @@ done
 
 # Check if the Go server is already running and ask for killing if yes
 cd ~/Softwares/MarketplaceJ2EE_Server
-PID_FILE="graphql/pid.txt"
+PID_FILE="graphql/graphql.pid"
 RUNNING = false
 if test -f "$PID_FILE"; then
     echo $PID_FILE
@@ -48,7 +48,7 @@ if !RUNNING then
     cd graphql
     mkdir ../outputs
     touch ../outputs/graphql_server.log
-    go run ./ &>> ../outputs/graphql_server.log & echo $! > graphql/pid.txt
+    go run ./ &>> ../outputs/graphql_server.log & echo $! > graphql/graphql.pid
     echo "Graphql go server launched !"
 else 
     echo "Graphql go server starting skipped !"
