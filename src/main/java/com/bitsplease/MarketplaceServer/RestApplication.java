@@ -4,9 +4,15 @@ import javax.net.ssl.*;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 
 @ApplicationPath("/rest")
 public class RestApplication extends Application {
+    public static final String API_KEY = "fVOz2GjFiOSQdcUocALLaN2AhnOQgQtPv0NDuPQYoDzXKFCpQz";
+    public static final String CLIENT_ID = "info802marketplace";
+    public static final String AUTHORIZATION_HEADER = "Basic " + Base64.getEncoder().encodeToString((CLIENT_ID + ":" + API_KEY).getBytes());
+    public static final String MANGOPAY_URL = "https://api.sandbox.mangopay.com/v2.01/info802marketplace";
+
     public RestApplication() {
         super();
         try {
