@@ -37,19 +37,21 @@ git pull
 # Install maven dependencies and build project
 mvn clean install
 
-# Start glassfish domain and redeploy project
+# Start glassfish domain, login and redeploy project
 ~/Softwares/glassfish/glassfish5/glassfish/bin/asadmin start-domain domain2
+~/Softwares/glassfish/glassfish5/glassfish/bin/asadmin login
 ~/Softwares/glassfish/glassfish5/glassfish/bin/asadmin undeploy MarketplaceServer-1.0-SNAPSHOT
 ~/Softwares/glassfish/glassfish5/glassfish/bin/asadmin --port 4848 --host localhost deploy target/MarketplaceServer-1.0-SNAPSHOT.war
 echo "J2EE server launched !"
 
 # Launch graphql go server
-if $RUNNING; then 
+if $RUNNING; then
     echo "Graphql go server starting skipped !"
-else 
+else
     cd graphql
     mkdir ../outputs
     touch ../outputs/graphql_server.log
-    go run ./ &>> ../outputs/graphql_server.log & echo $! > graphql.pid
+    go build -o GraphQL-Server ./
+    ./GraphQL-Server &>> ../outputs/graphql_server.log & echo $! > graphql.pid
     echo "Graphql go server launched !"
 fi
