@@ -100,10 +100,20 @@ func initDb(db *sql.DB) error {
 		},
 	}
 
+	var sellers = []Seller{
+		{
+			FirstName: "Hugo",
+			LastName:  "Bollon",
+			Email:     "hugo.bollon@gmail.com",
+			WalletId:  100218510,
+		},
+	}
+
+	// create `product` table if not exists
 	_, err := db.Query(
-		"CREATE TABLE IF NOT EXISTS products (" +
-			"id SERIAL," +
-			"name varchar(40) NOT NULL PRIMARY KEY," +
+		"CREATE TABLE IF NOT EXISTS product (" +
+			"id SERIAL PRIMARY KEY," +
+			"name varchar(40) UNIQUE NOT NULL," +
 			"description text NOT NULL," +
 			"quantity integer NOT NULL," +
 			"weight real NOT NULL," +
@@ -114,9 +124,22 @@ func initDb(db *sql.DB) error {
 		return err
 	}
 
+	// create `seller` table if not exists
+	_, err = db.Query(
+		"CREATE TABLE IF NOT EXISTS seller (" +
+			"id SERIAL PRIMARY KEY," +
+			"first_name varchar(40) NOT NULL," +
+			"last_name varchar(40) NOT NULL," +
+			"email varchar(255) UNIQUE NOT NULL," +
+			"wallet_id integer UNIQUE NOT NULL)",
+	)
+	if err != nil {
+		return err
+	}
+
 	for _, p := range products {
 		_, err = db.Query(
-			"INSERT INTO products (name, description, quantity, weight, price, asset_url) VALUES ('" +
+			"INSERT INTO product (name, description, quantity, weight, price, asset_url) VALUES ('" +
 				p.Name + "', '" +
 				p.Description + "', " +
 				fmt.Sprintf("%d", p.Quantity) + ", " +
@@ -130,12 +153,26 @@ func initDb(db *sql.DB) error {
 		}
 	}
 
+	for _, s := range sellers {
+		_, err = db.Query(
+			"INSERT INTO seller (first_name, last_name, email, wallet_id) VALUES ('" +
+				s.FirstName + "', '" +
+				s.LastName + "', '" +
+				s.Email + "', " +
+				fmt.Sprintf("%d", s.WalletId) + ") " +
+				"ON CONFLICT DO NOTHING",
+		)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
 func getAllProducts(db *sql.DB) ([]Product, error) {
 	var products []Product
-	rows, err := db.Query("SELECT name, description, quantity, weight, price, asset_url FROM products")
+	rows, err := db.Query("SELECT name, description, quantity, weight, price, asset_url FROM product")
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +200,7 @@ func getAllProducts(db *sql.DB) ([]Product, error) {
 func getProductById(db *sql.DB, id int) (Product, error) {
 	var p Product
 	// Prepare query, takes a name argument
-	query, err := db.Prepare("SELECT name, description, quantity, weight, price, asset_url FROM products WHERE id=$1")
+	query, err := db.Prepare("SELECT name, description, quantity, weight, price, asset_url FROM product WHERE id=$1")
 	if err != nil {
 		return p, err
 	}
@@ -196,7 +233,7 @@ func getProductById(db *sql.DB, id int) (Product, error) {
 func getProductByName(db *sql.DB, name string) (Product, error) {
 	var p Product
 	// Prepare query, takes a name argument
-	query, err := db.Prepare("SELECT name, description, quantity, weight, price, asset_url FROM products WHERE name=$1")
+	query, err := db.Prepare("SELECT name, description, quantity, weight, price, asset_url FROM product WHERE name=$1")
 	if err != nil {
 		return p, err
 	}
@@ -230,7 +267,7 @@ func insertProduct(db *sql.DB, p Product) (bool, error) {
 	res, err := getProductByName(db, p.Name)
 	if res == (Product{}) && err == nil {
 		_, err = db.Query(
-			"INSERT INTO products (name, description, quantity, weight, price, asset_url) VALUES ('" +
+			"INSERT INTO product (name, description, quantity, weight, price, asset_url) VALUES ('" +
 				p.Name + "', '" +
 				p.Description + "', " +
 				fmt.Sprintf("%d", p.Quantity) + ", " +

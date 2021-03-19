@@ -30,7 +30,7 @@ if test -f "$PID_FILE"; then
     fi
 fi
 
-# Update repo
+# Update git repository
 git reset --hard
 git pull
 
@@ -46,7 +46,7 @@ echo "J2EE server launched !"
 
 # Launch graphql go server
 if $RUNNING; then
-    echo "Graphql go server starting skipped !"
+    echo "Graphql go server restart skipped !"
 else
     cd graphql
     mkdir ../outputs

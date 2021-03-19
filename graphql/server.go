@@ -18,12 +18,20 @@ var (
 
 type Product struct {
 	Id          int     `json:"id"`
-	Name        string  `json:"firstName"`
-	Description string  `json:"lastName"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
 	Quantity    int     `json:"quantity"`
 	Weight      float64 `json:"weight"`
 	Price       float64 `json:"price"`
 	AssetUrl    string  `json:"asset_url"`
+}
+
+type Seller struct {
+	Id        int    `json:"id"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Email     string `json:"email"`
+	WalletId  int    `json:"walletId"`
 }
 
 var productType = graphql.NewObject(graphql.ObjectConfig{
@@ -49,6 +57,27 @@ var productType = graphql.NewObject(graphql.ObjectConfig{
 		},
 		"asset_url": &graphql.Field{
 			Type: graphql.String,
+		},
+	},
+})
+
+var sellerType = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Seller",
+	Fields: graphql.Fields{
+		"id": &graphql.Field{
+			Type: graphql.ID,
+		},
+		"firstName": &graphql.Field{
+			Type: graphql.String,
+		},
+		"lastName": &graphql.Field{
+			Type: graphql.String,
+		},
+		"email": &graphql.Field{
+			Type: graphql.String,
+		},
+		"walletId": &graphql.Field{
+			Type: graphql.Int,
 		},
 	},
 })
@@ -166,7 +195,7 @@ func disableCors(h http.Handler) http.Handler {
 }
 
 func main() {
-	// fetch all products from db
+	// initialize postgre database
 	db = connectDatabase()
 	defer db.Close()
 
@@ -185,6 +214,7 @@ func main() {
 	// serve a GraphiQL endpoint at `/`
 	http.Handle("/", fs)
 
+	// launch server
 	if environment == "prod" {
 		log.Fatal(http.ListenAndServeTLS(":8081", SslCrtFile, SslKeyFile, nil)) // https endpoint
 	} else {

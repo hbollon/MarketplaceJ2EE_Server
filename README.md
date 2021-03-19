@@ -57,21 +57,6 @@ done
 ~/Softwares/glassfish/glassfish5/glassfish/bin/asadmin stop-domain domain2
 
 # Check if the Go server is already running and ask for killing if yes
-#!/bin/bash
-
-# Check if the deploy script is already running
-for pid in $(pidof -x deploy.sh); do
-    echo $pid
-    if [ $pid != $$ ]; then
-        echo "Deploy script already running!"
-        exit 2
-    fi
-done
-
-# Stop Glassfish server
-~/Softwares/glassfish/glassfish5/glassfish/bin/asadmin stop-domain domain2
-
-# Check if the Go server is already running and ask for killing if yes
 cd ~/Softwares/MarketplaceJ2EE_Server
 PID_FILE="graphql/graphql.pid"
 RUNNING=false
@@ -89,7 +74,7 @@ if test -f "$PID_FILE"; then
     fi
 fi
 
-# Update repo
+# Update git repository
 git reset --hard
 git pull
 
@@ -105,7 +90,7 @@ echo "J2EE server launched !"
 
 # Launch graphql go server
 if $RUNNING; then
-    echo "Graphql go server starting skipped !"
+    echo "Graphql go server restart skipped !"
 else
     cd graphql
     mkdir ../outputs
@@ -118,7 +103,7 @@ fi
 
 ## Paiement
 
-Pour la gestion des paiement avec MangoPay j'ai opté pour un ***Web PayIn*** (page de paiement générer par MangoPay), cela nécessite d'enregistrer le client sur MangoPay.
+Pour la gestion des paiement avec MangoPay j'ai opté pour un ***Web PayIn*** (page de paiement générée par MangoPay), cela nécessite d'enregistrer le client sur MangoPay.
 
 Voici la routine effectué lors que l'ont fait une requête à l'api rest:
 
