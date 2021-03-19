@@ -1,10 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/graphql-go/graphql"
 	handler "github.com/graphql-go/graphql-go-handler"
@@ -32,6 +37,39 @@ type Seller struct {
 	LastName  string `json:"lastName"`
 	Email     string `json:"email"`
 	WalletId  int    `json:"walletId"`
+}
+
+func (s *Seller) RegisterSeller() error {
+	var url string
+	sellerJSON, err := json.Marshal(s)
+	if err != nil {
+		return fmt.Errorf("Could not marshall seller")
+	}
+	if environment == "prod" {
+		url = "https://51.178.42.90:8081/MarketplaceServer-1.0-SNAPSHOT/rest/seller/register"
+	} else {
+		url = "http://127.0.0.1:8080/MarketplaceServer-1.0-SNAPSHOT/rest/seller/register"
+	}
+
+	resp, err := http.Post(url, "application/json",
+		bytes.NewBuffer(sellerJSON))
+	if err != nil {
+		return fmt.Errorf("Could not make POST request to remote server: %v", err)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("Error unmarshaling data from request.")
+	}
+	s.WalletId, err = strconv.Atoi(string(body))
+	if err != nil {
+		return fmt.Errorf("Error during body conversion.")
+	}
+
+	if s.WalletId == -1 || s.WalletId == 0 {
+		return fmt.Errorf("Invalid or nil wallet id returned from server: %d", s.WalletId)
+	}
+	return nil
 }
 
 var productType = graphql.NewObject(graphql.ObjectConfig{
@@ -205,13 +243,14 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 				"email": &graphql.ArgumentConfig{
 					Type: graphql.String,
 				},
-				"walletId": &graphql.ArgumentConfig{
-					Type: graphql.Int,
-				},
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				var seller Seller
 				var ok bool
+				if res, _ := getSellerByEmail(db, p.Args["email"].(string)); res.WalletId != 0 {
+					return false, errors.New("Seller already registered")
+				}
+
 				seller.FirstName, ok = p.Args["firstName"].(string)
 				if !ok {
 					return false, errors.New("Missing required argument: firstName")
@@ -220,14 +259,16 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 				if !ok {
 					return false, errors.New("Missing required argument: lastName")
 				}
-				seller.Email, _ = p.Args["email"].(string)
+				seller.Email, ok = p.Args["email"].(string)
 				if !ok {
 					return false, errors.New("Missing required argument: email")
 				}
-				seller.WalletId, ok = p.Args["walletId"].(int)
-				if !ok {
-					return false, errors.New("Missing required argument: walletId")
+
+				if err := seller.RegisterSeller(); err != nil {
+					log.Println(err)
+					return false, err
 				}
+				fmt.Println(seller.WalletId)
 
 				return insertSeller(db, seller)
 			},
