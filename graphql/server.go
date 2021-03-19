@@ -150,24 +150,86 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 				var ok bool
 				product.Name, ok = p.Args["name"].(string)
 				if !ok {
-					return nil, errors.New("Missing required argument: name")
+					return false, errors.New("Missing required argument: name")
 				}
 				product.Description, ok = p.Args["description"].(string)
 				if !ok {
-					return nil, errors.New("Missing required argument: description")
+					return false, errors.New("Missing required argument: description")
 				}
 				product.Quantity, _ = p.Args["quantity"].(int) // optional with default value
 				product.Weight, ok = p.Args["weight"].(float64)
 				if !ok {
-					return nil, errors.New("Missing required argument: weight")
+					return false, errors.New("Missing required argument: weight")
 				}
 				product.Price, ok = p.Args["price"].(float64)
 				if !ok {
-					return nil, errors.New("Missing required argument: price")
+					return false, errors.New("Missing required argument: price")
 				}
 				product.AssetUrl, _ = p.Args["asset_url"].(string) // optional with default value
 
 				return insertProduct(db, product)
+			},
+		},
+		"seller": &graphql.Field{
+			Type:        sellerType,
+			Description: "Get seller by email",
+			Args: graphql.FieldConfigArgument{
+				"email": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				email, ok := p.Args["email"].(string)
+				if ok {
+					return getSellerByEmail(db, email)
+				}
+				return nil, nil
+			},
+		},
+		"sellers": &graphql.Field{
+			Type: graphql.NewList(sellerType),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				return getAllSellers(db)
+			},
+		},
+		"registerSeller": &graphql.Field{
+			Type:        graphql.Boolean,
+			Description: "Register a new seller",
+			Args: graphql.FieldConfigArgument{
+				"firstName": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+				"lastName": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+				"email": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+				"walletId": &graphql.ArgumentConfig{
+					Type: graphql.Int,
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				var seller Seller
+				var ok bool
+				seller.FirstName, ok = p.Args["firstName"].(string)
+				if !ok {
+					return false, errors.New("Missing required argument: firstName")
+				}
+				seller.LastName, ok = p.Args["lastName"].(string)
+				if !ok {
+					return false, errors.New("Missing required argument: lastName")
+				}
+				seller.Email, _ = p.Args["email"].(string)
+				if !ok {
+					return false, errors.New("Missing required argument: email")
+				}
+				seller.WalletId, ok = p.Args["walletId"].(int)
+				if !ok {
+					return false, errors.New("Missing required argument: walletId")
+				}
+
+				return insertSeller(db, seller)
 			},
 		},
 	},

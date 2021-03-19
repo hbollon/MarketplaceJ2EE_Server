@@ -170,6 +170,8 @@ func initDb(db *sql.DB) error {
 	return nil
 }
 
+/* Product interractions */
+
 func getAllProducts(db *sql.DB) ([]Product, error) {
 	var products []Product
 	rows, err := db.Query("SELECT name, description, quantity, weight, price, asset_url FROM product")
@@ -245,7 +247,7 @@ func getProductByName(db *sql.DB, name string) (Product, error) {
 		return p, err
 	}
 
-	// Unmarshall result rows to Product
+	// Unmarshal result rows to Product instances
 	if rows.Next() {
 		err = rows.Scan(
 			&p.Name,
@@ -278,6 +280,85 @@ func insertProduct(db *sql.DB, p Product) (bool, error) {
 		)
 	} else {
 		err = fmt.Errorf("The product '%s' is already registered.", p.Name)
+	}
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+/* Seller interractions */
+
+func getAllSellers(db *sql.DB) ([]Seller, error) {
+	var sellers []Seller
+	rows, err := db.Query("SELECT first_name, last_name, email, wallet_id FROM seller")
+	if err != nil {
+		return nil, err
+	}
+
+	// unmarshal result rows to Seller instances
+	for rows.Next() {
+		var s Seller
+		err = rows.Scan(
+			&s.FirstName,
+			&s.LastName,
+			&s.Email,
+			&s.WalletId,
+		)
+		if err != nil {
+			log.Fatalf("Scan: %v", err)
+		}
+		sellers = append(sellers, s)
+	}
+
+	return sellers, nil
+}
+
+func getSellerByEmail(db *sql.DB, email string) (Seller, error) {
+	var s Seller
+	// Prepare query, takes a name argument
+	query, err := db.Prepare("SELECT first_name, last_name, email, wallet_id FROM seller WHERE email=$1")
+	if err != nil {
+		return s, err
+	}
+
+	// Make query with our stmt, passing in name argument
+	var rows *sql.Rows
+	rows, err = query.Query(email)
+	if err != nil {
+		return s, err
+	}
+
+	// Unmarshal result rows to Seller instance
+	if rows.Next() {
+		err = rows.Scan(
+			&s.FirstName,
+			&s.LastName,
+			&s.Email,
+			&s.WalletId,
+		)
+	}
+	if err != nil {
+		return s, fmt.Errorf("Scan: %v", err)
+	}
+
+	return s, nil
+}
+
+func insertSeller(db *sql.DB, s Seller) (bool, error) {
+	res, err := getSellerByEmail(db, s.Email)
+	if res == (Seller{}) && err == nil {
+		_, err = db.Query(
+			"INSERT INTO seller (first_name, last_name, email, wallet_id) VALUES ('" +
+				s.FirstName + "', '" +
+				s.LastName + "', '" +
+				s.Email + "', " +
+				fmt.Sprintf("%d", s.WalletId) + ") " +
+				"ON CONFLICT DO NOTHING",
+		)
+	} else {
+		err = fmt.Errorf("The email '%s' is already registered as seller.", s.Email)
 	}
 	if err != nil {
 		return false, err
