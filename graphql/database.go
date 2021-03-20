@@ -425,7 +425,7 @@ func getSellerById(db *sql.DB, id int) (Seller, error) {
 
 func insertSeller(db *sql.DB, s Seller) (bool, error) {
 	res, err := getSellerByEmail(db, s.Email)
-	if res == (Seller{}) && err == nil {
+	if res == (Seller{}) && err != nil {
 		_, err = db.Query(
 			"INSERT INTO seller (first_name, last_name, email, wallet_id) VALUES ('" +
 				s.FirstName + "', '" +
