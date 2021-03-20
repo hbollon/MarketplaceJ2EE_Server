@@ -52,6 +52,15 @@ else
     mkdir ../outputs
     touch ../outputs/graphql_server.log
     go build -o GraphQL-Server ./
-    ./GraphQL-Server &>> ../outputs/graphql_server.log & echo $! > graphql.pid
+
+    read -p "Do you want to reset the database? (y/n)" -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+        ./GraphQL-Server --reset-db &>> ../outputs/graphql_server.log & echo $! > graphql.pid
+    else
+        ./GraphQL-Server &>> ../outputs/graphql_server.log & echo $! > graphql.pid
+    fi
+
     echo "Graphql go server launched !"
 fi
