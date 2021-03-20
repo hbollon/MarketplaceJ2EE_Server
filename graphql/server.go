@@ -29,6 +29,7 @@ type Product struct {
 	Weight      float64 `json:"weight"`
 	Price       float64 `json:"price"`
 	AssetUrl    string  `json:"asset_url"`
+	Seller      Seller  `json:"seller"`
 }
 
 type Seller struct {
@@ -95,6 +96,9 @@ var productType = graphql.NewObject(graphql.ObjectConfig{
 		},
 		"asset_url": &graphql.Field{
 			Type: graphql.String,
+		},
+		"seller": &graphql.Field{
+			Type: sellerType,
 		},
 	},
 })
@@ -182,9 +186,13 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 					Type:         graphql.String,
 					DefaultValue: "https://bubbleerp.sysfosolutions.com/img/default-pro.jpg",
 				},
+				"seller": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				var product Product
+				var err error
 				var ok bool
 				product.Name, ok = p.Args["name"].(string)
 				if !ok {
@@ -204,6 +212,10 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 					return false, errors.New("Missing required argument: price")
 				}
 				product.AssetUrl, _ = p.Args["asset_url"].(string) // optional with default value
+				product.Seller, err = getSellerByEmail(db, p.Args["seller"].(string))
+				if err != nil {
+					return false, err
+				}
 
 				return insertProduct(db, product)
 			},
