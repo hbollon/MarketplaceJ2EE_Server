@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -15,11 +16,29 @@ import (
 	handler "github.com/graphql-go/graphql-go-handler"
 )
 
+/// Flags
+var flags = struct {
+	// ResetDbFlag trigger a database reset on server launch
+	ResetDbFlag *bool
+
+	// PortFlag specify custom communication port for server
+	PortFlag *int
+}{
+	ResetDbFlag: flag.Bool("reset-db", false, "Reset database"),
+	PortFlag:    flag.Int("port", 8081, "Specify custom communication port"),
+}
+
 var (
 	SslCrtFile string
 	SslKeyFile string
 	db         *sql.DB
 )
+
+// Function executed automatically at program startup
+// Will parse executable flags in this case
+func init() {
+	flag.Parse()
+}
 
 type Product struct {
 	Id          int     `json:"id"`
@@ -331,8 +350,8 @@ func main() {
 
 	// launch server
 	if environment == "prod" {
-		log.Fatal(http.ListenAndServeTLS(":8081", SslCrtFile, SslKeyFile, nil)) // https endpoint
+		log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%d", *flags.PortFlag), SslCrtFile, SslKeyFile, nil)) // https endpoint
 	} else {
-		log.Fatal(http.ListenAndServe(":8081", nil)) // http endpoint
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *flags.PortFlag), nil)) // http endpoint
 	}
 }

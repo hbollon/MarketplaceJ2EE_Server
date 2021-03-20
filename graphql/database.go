@@ -112,6 +112,12 @@ func initDb(db *sql.DB) error {
 		},
 	}
 
+	if *flags.ResetDbFlag {
+		if err := resetDb(db); err != nil {
+			return err
+		}
+	}
+
 	// create `seller` table if not exists
 	_, err := db.Query(
 		"CREATE TABLE IF NOT EXISTS seller (" +
@@ -171,6 +177,22 @@ func initDb(db *sql.DB) error {
 				p.AssetUrl + "', " +
 				fmt.Sprintf("%d", seller.Id) + ") " +
 				"ON CONFLICT DO NOTHING",
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Reset whole database if `reset-db` flag is setted
+func resetDb(db *sql.DB) error {
+	tables := []string{"product", "seller"}
+
+	for _, table := range tables {
+		_, err := db.Query(
+			fmt.Sprintf("DROP TABLE IF EXISTS %s", table),
 		)
 		if err != nil {
 			return err
