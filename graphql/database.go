@@ -184,7 +184,7 @@ func initDb(db *sql.DB) error {
 
 func getAllProducts(db *sql.DB) ([]Product, error) {
 	var products []Product
-	rows, err := db.Query("SELECT name, description, quantity, weight, price, asset_url, seller_id FROM product")
+	rows, err := db.Query("SELECT id, name, description, quantity, weight, price, asset_url, seller_id FROM product")
 	if err != nil {
 		return nil, err
 	}
@@ -194,6 +194,7 @@ func getAllProducts(db *sql.DB) ([]Product, error) {
 		var p Product
 		var sellerId int
 		err = rows.Scan(
+			&p.Id,
 			&p.Name,
 			&p.Description,
 			&p.Quantity,
@@ -221,7 +222,7 @@ func getProductById(db *sql.DB, id int) (Product, error) {
 	var p Product
 	var sellerId int
 	// Prepare query, takes a name argument
-	query, err := db.Prepare("SELECT name, description, quantity, weight, price, asset_url, seller_id FROM product WHERE id=$1")
+	query, err := db.Prepare("SELECT id, name, description, quantity, weight, price, asset_url, seller_id FROM product WHERE id=$1")
 	if err != nil {
 		return p, err
 	}
@@ -236,6 +237,7 @@ func getProductById(db *sql.DB, id int) (Product, error) {
 	// Unmarshall result rows to Product
 	if rows.Next() {
 		err = rows.Scan(
+			&p.Id,
 			&p.Name,
 			&p.Description,
 			&p.Quantity,
@@ -262,7 +264,7 @@ func getProductByName(db *sql.DB, name string) (Product, error) {
 	var p Product
 	var sellerId int
 	// Prepare query, takes a name argument
-	query, err := db.Prepare("SELECT name, description, quantity, weight, price, asset_url, seller_id FROM product WHERE name=$1")
+	query, err := db.Prepare("SELECT id, name, description, quantity, weight, price, asset_url, seller_id FROM product WHERE name=$1")
 	if err != nil {
 		return p, err
 	}
@@ -277,6 +279,7 @@ func getProductByName(db *sql.DB, name string) (Product, error) {
 	// Unmarshal result rows to Product instances
 	if rows.Next() {
 		err = rows.Scan(
+			&p.Id,
 			&p.Name,
 			&p.Description,
 			&p.Quantity,
