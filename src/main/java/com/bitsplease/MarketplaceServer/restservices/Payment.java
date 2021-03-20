@@ -37,7 +37,7 @@ public class Payment {
                     .put("AuthorId", userId)
                     .put("DebitedFunds", new JSONObject().put("Currency", "EUR").put("Amount", (obj.getProduct().getPrice() + obj.getProduct().getFees()) * 100.0))
                     .put("Fees", new JSONObject().put("Currency", "EUR").put("Amount", 0.0))
-                    .put("ReturnURL", "http://localhost:4200")
+                    .put("ReturnURL", "https://hbollon.github.io/MarketplaceJ2EE_Client/")
                     .put("CardType", "CB_VISA_MASTERCARD")
                     .put("CreditedWalletId", Integer.toString(obj.getProduct().getSeller().getWalletId()))
                     .put("Culture", "FR")
