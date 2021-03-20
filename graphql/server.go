@@ -145,12 +145,6 @@ var sellerType = graphql.NewObject(graphql.ObjectConfig{
 var queryType = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Query",
 	Fields: graphql.Fields{
-		"greeting": &graphql.Field{
-			Type: graphql.String,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				return "Hello World!", nil
-			},
-		},
 		"product": &graphql.Field{
 			Type:        productType,
 			Description: "Get product by id or name",
