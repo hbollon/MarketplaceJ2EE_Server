@@ -11,6 +11,12 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// Embedded type alias to allow methods creation while
+// keeping access to parent fields/methods
+type Database struct {
+	*sql.DB
+}
+
 var (
 	environment string
 	connection  string
@@ -43,7 +49,7 @@ func init() {
 	SslKeyFile = os.Getenv("SSL_KEY_FILE")
 }
 
-func connectDatabase() *sql.DB {
+func connectDatabase() (db Database) {
 	// Define connection string for lib/pq
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
@@ -52,7 +58,8 @@ func connectDatabase() *sql.DB {
 	fmt.Println(psqlInfo)
 
 	// Open db connection
-	db, err := sql.Open(connection, psqlInfo)
+	var err error
+	db.DB, err = sql.Open(connection, psqlInfo)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -64,7 +71,7 @@ func connectDatabase() *sql.DB {
 	}
 
 	// Create table and insert default data if not exist
-	err = initDb(db)
+	err = db.initDb()
 	if err != nil {
 		log.Fatalf("Error during db initialization: %v\n", err)
 	}
@@ -72,7 +79,7 @@ func connectDatabase() *sql.DB {
 	return db
 }
 
-func initDb(db *sql.DB) error {
+func (db *Database) initDb() error {
 	var sellers = []Seller{
 		{
 			FirstName: "Hugo",
@@ -113,7 +120,7 @@ func initDb(db *sql.DB) error {
 	}
 
 	if *flags.ResetDbFlag {
-		if err := resetDb(db); err != nil {
+		if err := db.resetDb(); err != nil {
 			return err
 		}
 	}
@@ -166,7 +173,7 @@ func initDb(db *sql.DB) error {
 	}
 
 	for _, p := range products {
-		seller, _ := getSellerByEmail(db, p.Seller.Email)
+		seller, _ := db.getSellerByEmail(p.Seller.Email)
 		_, err = db.Query(
 			"INSERT INTO product (name, description, quantity, weight, price, asset_url, seller_id) VALUES ('" +
 				p.Name + "', '" +
@@ -187,7 +194,7 @@ func initDb(db *sql.DB) error {
 }
 
 // Reset whole database if `reset-db` flag is setted
-func resetDb(db *sql.DB) error {
+func (db *Database) resetDb() error {
 	tables := []string{"product", "seller"}
 
 	for _, table := range tables {
@@ -204,7 +211,7 @@ func resetDb(db *sql.DB) error {
 
 /* Product interractions */
 
-func getAllProducts(db *sql.DB) ([]Product, error) {
+func (db *Database) getAllProducts() ([]Product, error) {
 	var products []Product
 	rows, err := db.Query("SELECT id, name, description, quantity, weight, price, asset_url, seller_id FROM product")
 	if err != nil {
@@ -229,7 +236,7 @@ func getAllProducts(db *sql.DB) ([]Product, error) {
 			log.Fatalf("Scan: %v", err)
 		}
 		if p.Id != 0 {
-			p.Seller, err = getSellerById(db, sellerId)
+			p.Seller, err = db.getSellerById(sellerId)
 			if err != nil {
 				log.Fatalf("Failled getting seller from id: %v", err)
 			}
@@ -240,7 +247,7 @@ func getAllProducts(db *sql.DB) ([]Product, error) {
 	return products, nil
 }
 
-func getProductById(db *sql.DB, id int) (Product, error) {
+func (db *Database) getProductById(id int) (Product, error) {
 	var p Product
 	var sellerId int
 	// Prepare query, takes a name argument
@@ -256,7 +263,7 @@ func getProductById(db *sql.DB, id int) (Product, error) {
 		return p, err
 	}
 
-	// Unmarshall result rows to Product
+	// Unmarshal result rows to Product
 	if rows.Next() {
 		err = rows.Scan(
 			&p.Id,
@@ -273,7 +280,7 @@ func getProductById(db *sql.DB, id int) (Product, error) {
 		return p, fmt.Errorf("Scan: %v", err)
 	}
 	if p.Id != 0 {
-		p.Seller, err = getSellerById(db, sellerId)
+		p.Seller, err = db.getSellerById(sellerId)
 		if err != nil {
 			log.Fatalf("Failled getting seller from id: %v", err)
 		}
@@ -282,7 +289,7 @@ func getProductById(db *sql.DB, id int) (Product, error) {
 	return p, nil
 }
 
-func getProductByName(db *sql.DB, name string) (Product, error) {
+func (db *Database) getProductByName(name string) (Product, error) {
 	var p Product
 	var sellerId int
 	// Prepare query, takes a name argument
@@ -315,7 +322,7 @@ func getProductByName(db *sql.DB, name string) (Product, error) {
 		return p, fmt.Errorf("Scan: %v", err)
 	}
 	if p.Id != 0 {
-		p.Seller, err = getSellerById(db, sellerId)
+		p.Seller, err = db.getSellerById(sellerId)
 		if err != nil {
 			log.Fatalf("Failled getting seller from id: %v", err)
 		}
@@ -324,10 +331,10 @@ func getProductByName(db *sql.DB, name string) (Product, error) {
 	return p, nil
 }
 
-func insertProduct(db *sql.DB, p Product) (bool, error) {
-	res, err := getProductByName(db, p.Name)
+func (db *Database) insertProduct(p Product) (bool, error) {
+	res, err := db.getProductByName(p.Name)
 	if res == (Product{}) && err == nil {
-		seller, _ := getSellerByEmail(db, p.Seller.Email)
+		seller, _ := db.getSellerByEmail(p.Seller.Email)
 		_, err = db.Query(
 			"INSERT INTO product (name, description, quantity, weight, price, asset_url, seller_id) VALUES ('" +
 				p.Name + "', '" +
@@ -351,7 +358,7 @@ func insertProduct(db *sql.DB, p Product) (bool, error) {
 
 /* Seller interractions */
 
-func getAllSellers(db *sql.DB) ([]Seller, error) {
+func (db *Database) getAllSellers() ([]Seller, error) {
 	var sellers []Seller
 	rows, err := db.Query("SELECT first_name, last_name, email, wallet_id FROM seller")
 	if err != nil {
@@ -376,7 +383,7 @@ func getAllSellers(db *sql.DB) ([]Seller, error) {
 	return sellers, nil
 }
 
-func getSellerByEmail(db *sql.DB, email string) (Seller, error) {
+func (db *Database) getSellerByEmail(email string) (Seller, error) {
 	var s Seller
 	// Prepare query, takes a name argument
 	query, err := db.Prepare("SELECT id, first_name, last_name, email, wallet_id FROM seller WHERE email=$1")
@@ -411,7 +418,7 @@ func getSellerByEmail(db *sql.DB, email string) (Seller, error) {
 	return s, nil
 }
 
-func getSellerById(db *sql.DB, id int) (Seller, error) {
+func (db *Database) getSellerById(id int) (Seller, error) {
 	var s Seller
 	// Prepare query, takes a name argument
 	query, err := db.Prepare("SELECT first_name, last_name, email, wallet_id FROM seller WHERE id=$1")
@@ -445,8 +452,8 @@ func getSellerById(db *sql.DB, id int) (Seller, error) {
 	return s, nil
 }
 
-func insertSeller(db *sql.DB, s Seller) (bool, error) {
-	res, err := getSellerByEmail(db, s.Email)
+func (db *Database) insertSeller(s Seller) (bool, error) {
+	res, err := db.getSellerByEmail(s.Email)
 	if res == (Seller{}) && err != nil {
 		_, err = db.Query(
 			"INSERT INTO seller (first_name, last_name, email, wallet_id) VALUES ('" +

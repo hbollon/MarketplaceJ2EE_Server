@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -31,7 +30,7 @@ var flags = struct {
 var (
 	SslCrtFile string
 	SslKeyFile string
-	db         *sql.DB
+	db         Database
 )
 
 // Function executed automatically at program startup
@@ -166,11 +165,11 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				id, ok := p.Args["id"].(int)
 				if ok {
-					return getProductById(db, id)
+					return db.getProductById(id)
 				}
 				name, ok := p.Args["name"].(string)
 				if ok {
-					return getProductByName(db, name)
+					return db.getProductByName(name)
 				}
 				return nil, nil
 			},
@@ -178,7 +177,7 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 		"products": &graphql.Field{
 			Type: graphql.NewList(productType),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				return getAllProducts(db)
+				return db.getAllProducts()
 			},
 		},
 		"sellProduct": &graphql.Field{
@@ -231,12 +230,12 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 					return false, errors.New("Missing required argument: price")
 				}
 				product.AssetUrl, _ = p.Args["asset_url"].(string) // optional with default value
-				product.Seller, err = getSellerByEmail(db, p.Args["seller"].(string))
+				product.Seller, err = db.getSellerByEmail(p.Args["seller"].(string))
 				if err != nil {
 					return false, err
 				}
 
-				return insertProduct(db, product)
+				return db.insertProduct(product)
 			},
 		},
 		"seller": &graphql.Field{
@@ -250,7 +249,7 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				email, ok := p.Args["email"].(string)
 				if ok {
-					return getSellerByEmail(db, email)
+					return db.getSellerByEmail(email)
 				}
 				return nil, nil
 			},
@@ -258,7 +257,7 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 		"sellers": &graphql.Field{
 			Type: graphql.NewList(sellerType),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				return getAllSellers(db)
+				return db.getAllSellers()
 			},
 		},
 		"registerSeller": &graphql.Field{
@@ -278,7 +277,7 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				var seller Seller
 				var ok bool
-				if res, _ := getSellerByEmail(db, p.Args["email"].(string)); res.WalletId != 0 {
+				if res, _ := db.getSellerByEmail(p.Args["email"].(string)); res.WalletId != 0 {
 					return false, errors.New("Seller already registered")
 				}
 
@@ -301,7 +300,7 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 				}
 				fmt.Println(seller.WalletId)
 
-				return insertSeller(db, seller)
+				return db.insertSeller(seller)
 			},
 		},
 	},
