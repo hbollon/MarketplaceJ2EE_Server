@@ -39,7 +39,7 @@ public class Payment {
                     .put("Fees", new JSONObject().put("Currency", "EUR").put("Amount", 0.0))
                     .put("ReturnURL", "http://localhost:4200")
                     .put("CardType", "CB_VISA_MASTERCARD")
-                    .put("CreditedWalletId", "100218510")
+                    .put("CreditedWalletId", Integer.toString(obj.getProduct().getSeller().getWalletId()))
                     .put("Culture", "FR")
                     .toString();
 

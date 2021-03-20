@@ -7,6 +7,7 @@ public class Product {
     private float weight;
     private float price;
     private float fees;
+    private Seller seller;
 
     public Product() {
     }
@@ -59,15 +60,25 @@ public class Product {
         this.fees = fees;
     }
 
+    public Seller getSeller() {
+        return this.seller;
+    }
+
+    public void setSeller(Seller seller) {
+        this.seller = seller;
+    }
+    
     @Override
     public String toString() {
-        return "Product{" +
-                "name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", quantity=" + quantity +
-                ", weight=" + weight +
-                ", price=" + price +
-                ", fees=" + fees +
-                '}';
+        return "{" +
+            " name='" + name + "'" +
+            ", description='" + description + "'" +
+            ", quantity='" + quantity + "'" +
+            ", weight='" + weight + "'" +
+            ", price='" + price + "'" +
+            ", fees='" + fees + "'" +
+            ", seller='" + seller.toString() + "'" +
+            "}";
     }
+
 }

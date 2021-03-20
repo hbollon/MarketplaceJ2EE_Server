@@ -451,7 +451,7 @@ Voici la routine effectué lors que l'ont fait une requête à l'api rest:
 
 1. Nous regardons si l'utilisateur est "Client" sur MangoPay, si oui alors nous récupérons ses infos et passons directement à l'étape **3**
 2. Dans le cas contraire, nous l'enregistrons
-3. Ensuite, nous effectuons une requête à MangoPay pour obtenir un Web PayIn en lui fournissant les informations du client ainsi que celles de l'article acheté.
+3. Ensuite, nous effectuons une requête à MangoPay pour obtenir un Web PayIn en lui fournissant les informations du client, de l'article acheté ainsi que du vendeur (afin d'obtenir son _WalletId_ pour pourvoir le créditer).
 4. Enfin, nous redirigeons le client web vers l'url du Web PayIn reçu
 
 Documentation: https://docs.mangopay.com/endpoints/v2.01/payins#e269_create-a-card-web-payin
