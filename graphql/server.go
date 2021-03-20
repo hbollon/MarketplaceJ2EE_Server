@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -64,14 +65,22 @@ func (s *Seller) RegisterSeller() error {
 	if err != nil {
 		return fmt.Errorf("Could not marshall seller")
 	}
+
+	var resp *http.Response
 	if environment == "prod" {
-		url = "https://51.178.42.90:8081/MarketplaceServer-1.0-SNAPSHOT/rest/seller/register"
+		url = "https://51.178.42.90:8181/MarketplaceServer-1.0-SNAPSHOT/rest/seller/register"
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{Transport: tr}
+		resp, err = client.Post(url, "application/json",
+			bytes.NewBuffer(sellerJSON))
 	} else {
 		url = "http://127.0.0.1:8080/MarketplaceServer-1.0-SNAPSHOT/rest/seller/register"
+		resp, err = http.Post(url, "application/json",
+			bytes.NewBuffer(sellerJSON))
 	}
 
-	resp, err := http.Post(url, "application/json",
-		bytes.NewBuffer(sellerJSON))
 	if err != nil {
 		return fmt.Errorf("Could not make POST request to remote server: %v", err)
 	}
