@@ -1,1 +1,1 @@
-web: bin/graphql_server
+web: graphql/bin/graphql_server
