@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -19,47 +17,19 @@ type Database struct {
 
 var (
 	environment string
-	connection  string
-	host        string
-	port        int
-	dbname      string
-	user        string
-	password    string
+	db_url      string
 )
 
 // init function called by Go before main execution and after variables definition
 func init() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
 	environment = os.Getenv("ENVIRONMENT")
-	connection = os.Getenv("DB_CONNECTION")
-	host = os.Getenv("DB_HOST")
-	port, err = strconv.Atoi(os.Getenv("DB_PORT"))
-	if err != nil {
-		log.Printf("Error: %v\nUsing default port\n", err)
-		port = 5432
-	}
-	dbname = os.Getenv("DB_DATABASE")
-	user = os.Getenv("DB_USERNAME")
-	password = os.Getenv("DB_PASSWORD")
-	SslCrtFile = os.Getenv("SSL_CRT_FILE")
-	SslKeyFile = os.Getenv("SSL_KEY_FILE")
+	db_url = os.Getenv("DATABASE_URL")
 }
 
 func connectDatabase() (db Database) {
-	// Define connection string for lib/pq
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-
-	fmt.Println(psqlInfo)
-
 	// Open db connection
 	var err error
-	db.DB, err = sql.Open(connection, psqlInfo)
+	db.DB, err = sql.Open("postgres", db_url)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/graphql-go/graphql"
@@ -352,7 +353,7 @@ func main() {
 
 	// launch server
 	if environment == "prod" {
-		log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%d", *flags.PortFlag), SslCrtFile, SslKeyFile, nil)) // https endpoint
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), nil)) // https endpoint
 	} else {
 		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *flags.PortFlag), nil)) // http endpoint
 	}
